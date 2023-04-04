@@ -5,6 +5,7 @@ from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, T
 
 # Importamos la clase Dinosaurio desde otro archivo
 from dino_runner.components.dinosaur import Dinosaur
+from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
 
 class Game:
   def __init__(self):
@@ -32,6 +33,7 @@ class Game:
     self.y_pos_bg = 380
     # Creamos un objeto Dinosaurio
     self.player = Dinosaur()
+    self.obstacle_manager = ObstacleManager()
 
   def run(self):
     # Game loop: events - update - draw
@@ -57,6 +59,7 @@ class Game:
     # Actualización de los elementos del juego
     user_input = pygame.key.get_pressed()
     self.player.update(user_input)
+    self.obstacle_manager.update(self)
 
   def draw(self):
     # Dibujado de los elementos del juego
@@ -67,6 +70,8 @@ class Game:
     self.draw_background()
     # Dibujamos el dinosaurio
     self.player.draw(self.screen)
+    # Dibujamos el obstaculo (cactus)
+    self.obstacle_manager.draw(self.screen)
     # Actualizamos la pantalla
     pygame.display.update()
     # pygame.display.flip()
