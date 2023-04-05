@@ -1,13 +1,15 @@
 import pygame
 
 # Importamos constantes personalizadas desde otro archivo
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS
+from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE
 
 # Importamos la clase Dinosaurio desde otro archivo
 from dino_runner.components.dinosaur import Dinosaur
 from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
+from dino_runner.components.obstacles.menu import Menu
 
 class Game:
+  GAME_SPEED = 20
   def __init__(self):
 # Inicialización de Pygame
     pygame.init()
@@ -26,7 +28,7 @@ class Game:
     self.playing = False
 
     # Velocidad del juego en píxeles por segundo
-    self.game_speed = 20
+    self.game_speed = self.GAME_SPEED
 
     # Coordenadas x e y de la imagen de fondo
     self.x_pos_bg = 0
@@ -34,8 +36,25 @@ class Game:
     # Creamos un objeto Dinosaurio
     self.player = Dinosaur()
     self.obstacle_manager = ObstacleManager()
+    self.menu = Menu('Press any key to start...', self.screen)
+    self.running = False
+    self.death_count = 0
+    self.score = 0
+
+  def execute(self):
+    self.running = True
+    while self.running:
+      if not self.playing:
+        self.show_menu()
+    pygame.display.quit()
+    # Salimos de Pygame
+    pygame.quit()
 
   def run(self):
+    self.obstacle_manager.reset_obstacles()
+    self.player.reset_dinosaur()
+    self.score = 0
+    self.game_speed = self.GAME_SPEED
     # Game loop: events - update - draw
     # Iniciamos el juego
     self.playing = True
@@ -44,9 +63,6 @@ class Game:
       self.events()
       self.update()
       self.draw()
-
-      # Salimos de Pygame
-    pygame.quit()
 
   def events(self):
     # Manejo de eventos del juego
@@ -60,6 +76,7 @@ class Game:
     user_input = pygame.key.get_pressed()
     self.player.update(user_input)
     self.obstacle_manager.update(self)
+    self.update_score()
 
   def draw(self):
     # Dibujado de los elementos del juego
@@ -70,8 +87,11 @@ class Game:
     self.draw_background()
     # Dibujamos el dinosaurio
     self.player.draw(self.screen)
+    # Dibujamos la puntuacion en pantalla
+    self.draw_score()
     # Dibujamos el obstaculo (cactus)
     self.obstacle_manager.draw(self.screen)
+
     # Actualizamos la pantalla
     pygame.display.update()
     # pygame.display.flip()
@@ -94,3 +114,30 @@ class Game:
 
     # Movemos la imagen de fondo hacia la izquierda
     self.x_pos_bg -= self.game_speed
+
+  def show_menu(self):
+    half_screen_height = SCREEN_HEIGHT // 2
+    half_screen_width = SCREEN_WIDTH // 2
+    self.menu.reset_screen_color(self.screen)
+
+    if self.death_count == 0:
+      self.menu.draw(self.screen)
+    else:
+      self.menu.update_message('new Message')
+      self.menu.draw(self.screen)
+
+    self.screen.blit(ICON, (half_screen_width - 50, half_screen_height - 140))
+    self.menu.update(self)
+
+  def update_score(self):
+    self.score += 1
+
+    if self.score % 100 == 0 and self.game_speed < 500:
+      self.game_speed += 5
+
+  def draw_score(self):
+    font = pygame.font.Font(FONT_STYLE, 30)
+    text = font.render(f'Score: {self.score}', True, (0, 0, 0))
+    text_rect = text.get_rect()
+    text_rect.center = (1000, 50)
+    self.screen.blit(text, text_rect)
