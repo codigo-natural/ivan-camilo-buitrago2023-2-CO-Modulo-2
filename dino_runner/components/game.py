@@ -1,15 +1,17 @@
 import pygame
 
 # Importamos constantes personalizadas desde otro archivo
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE
+from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE, GAMEOVER
 
 # Importamos la clase Dinosaurio desde otro archivo
 from dino_runner.components.dinosaur import Dinosaur
 from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
-from dino_runner.components.obstacles.menu import Menu
+from dino_runner.components.message import draw_message
 
 class Game:
+  # Definimos la constante GAME_SPEED con un valor de 20 píxeles por segundo
   GAME_SPEED = 20
+  # Constructor de la clase Game
   def __init__(self):
 # Inicialización de Pygame
     pygame.init()
@@ -35,28 +37,34 @@ class Game:
     self.y_pos_bg = 380
     # Creamos un objeto Dinosaurio
     self.player = Dinosaur()
+    # Creamos un objeto ObstacleManager
     self.obstacle_manager = ObstacleManager()
-    self.menu = Menu('Press any key to start...', self.screen)
+    # Inicializamos variables
     self.running = False
     self.death_count = 0
+    self.total_points = 0
     self.score = 0
 
+  # Función para iniciar el juego
   def execute(self):
+    # Cambiamos el valor de running a True para iniciar el bucle principal
     self.running = True
     while self.running:
       if not self.playing:
+        # Si el juego no ha comenzado, mostramos el menú
         self.show_menu()
     pygame.display.quit()
     # Salimos de Pygame
     pygame.quit()
 
   def run(self):
-    self.obstacle_manager.reset_obstacles()
-    self.player.reset_dinosaur()
-    self.score = 0
-    self.game_speed = self.GAME_SPEED
+    # self.obstacle_manager.reset_obstacles()
+    # self.player.reset_dinosaur()
+    # self.score = 0
+    # self.game_speed = self.GAME_SPEED
     # Game loop: events - update - draw
     # Iniciamos el juego
+    self.reset_all()
     self.playing = True
     # Bucle principal del juego: eventos - actualización - dibujado
     while self.playing:
@@ -78,8 +86,9 @@ class Game:
     self.obstacle_manager.update(self)
     self.update_score()
 
+  # Función para dibujar los elementos del juego
   def draw(self):
-    # Dibujado de los elementos del juego
+    # Controlamos el FPS del juego
     self.clock.tick(FPS)
     # Rellenamos la pantalla con el color blanco
     self.screen.fill((255, 255, 255))
@@ -94,7 +103,7 @@ class Game:
 
     # Actualizamos la pantalla
     pygame.display.update()
-    # pygame.display.flip()
+    pygame.display.flip()
 
   def draw_background(self):
     # Dibujado del fondo del juego
@@ -116,28 +125,52 @@ class Game:
     self.x_pos_bg -= self.game_speed
 
   def show_menu(self):
+    self.screen.fill((255, 255, 255))
     half_screen_height = SCREEN_HEIGHT // 2
     half_screen_width = SCREEN_WIDTH // 2
-    self.menu.reset_screen_color(self.screen)
 
     if self.death_count == 0:
-      self.menu.draw(self.screen)
+      draw_message('Press any key to restart ...', self.screen)
     else:
-      self.menu.update_message('new Message')
-      self.menu.draw(self.screen)
+      draw_message('Press any key to restart ...', self.screen)
+      draw_message(f'Your Score: {self.score}', self.screen, HALF_SCREEN_WIDTH = half_screen_height + 50)
+      draw_message(f'Best Score: {self.total_points}', self.screen, HALF_SCREEN_WIDTH = half_screen_height + 100)
+      draw_message(f'Total Deaths: {self.death_count}', self.screen, HALF_SCREEN_WIDTH = half_screen_height + 150)
+      GAMEOVER_RECT = GAMEOVER.get_rect()
+      GAMEOVER_RECT.center = (half_screen_width, half_screen_height), 
+      self.screen.blit(GAMEOVER, (GAMEOVER_RECT.x, GAMEOVER_RECT.y - 50))
+      self.screen.blit(ICON, (half_screen_width - 50, half_screen_height - 200))
 
-    self.screen.blit(ICON, (half_screen_width - 50, half_screen_height - 140))
-    self.menu.update(self)
+    pygame.display.update()
+    self.handle_events_on_menu()
+
+  def handle_events_on_menu(self):
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        self.running = False
+        self.playing = False
+      elif event.type == pygame.KEYDOWN:
+        self.run()
 
   def update_score(self):
-    self.score += 1
-
     if self.score % 100 == 0 and self.game_speed < 500:
+      # Incrementamos la velocidad del juego
       self.game_speed += 5
-
+    # actualizamos la puntuacion del juego
+    self.score += 1
+    # Comprobamos si se ha superado la mejor puntuación
+    if self.score > self.total_points:
+      self.total_points = self.score
+    
   def draw_score(self):
     font = pygame.font.Font(FONT_STYLE, 30)
     text = font.render(f'Score: {self.score}', True, (0, 0, 0))
     text_rect = text.get_rect()
     text_rect.center = (1000, 50)
     self.screen.blit(text, text_rect)
+
+  def reset_all(self):
+    self.obstacle_manager.reset_obstacles()
+    self.playing = True
+    self.game_speed = self.GAME_SPEED
+    self.score = 0
