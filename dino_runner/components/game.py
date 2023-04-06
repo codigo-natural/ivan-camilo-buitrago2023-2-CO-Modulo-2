@@ -1,11 +1,12 @@
 import pygame
 
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE, DEFAULT_TYPE, GAMEOVER
+from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE, DEFAULT_TYPE, CLOUD, GAMEOVER
 from dino_runner.components.dinosaur import Dinosaur
 from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
 from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 from dino_runner.components.message import draw_message
 
+WHITE = (255, 255, 255)
 class Game:
     def __init__(self):
         pygame.init()
@@ -56,7 +57,7 @@ class Game:
 
     def draw(self):
         self.clock.tick(FPS)
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(WHITE)
         self.draw_background()
         self.player.draw(self.screen)
         self.obstacle_manager.draw(self.screen)
@@ -67,7 +68,7 @@ class Game:
         pygame.display.flip()
 
     def show_menu(self):
-        self.screen.fill((255, 255,255))
+        self.screen.fill(WHITE)
         half_screen_height = SCREEN_HEIGHT // 2
         half_screen_width = SCREEN_WIDTH // 2
         
@@ -118,7 +119,7 @@ class Game:
 
     def update_score(self):
         if self.score % 100 == 0 and self.game_speed < 500:
-            self.game_speed += 5
+            self.game_speed += 2
         self.score += 1   
         if self.score > self.total_points:
             self.total_points = self.score  
@@ -127,6 +128,8 @@ class Game:
         image_width = BG.get_width()
         self.screen.blit(BG, (self.x_pos_bg, self.y_pos_bg))
         self.screen.blit(BG, (image_width + self.x_pos_bg, self.y_pos_bg))
+        self.screen.blit(CLOUD, (100, 100))
+        self.screen.blit(CLOUD, (500, 150))
         if self.x_pos_bg <= -image_width:
             self.screen.blit(BG, (image_width + self.x_pos_bg, self.y_pos_bg))
             self.x_pos_bg = 0
